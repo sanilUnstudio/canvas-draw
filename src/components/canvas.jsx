@@ -1,6 +1,7 @@
 
-import { useEffect, useState } from 'react';
-const Canvas = ({ canvasRef,screenHeight,screenWidth,setScreenHeight,setScreenWidth }) => {
+import { useEffect, useState, useRef } from 'react';
+const Canvas = ({ canvasRef,screenHeight,screenWidth,setScreenHeight,setScreenWidth,addLayer }) => {
+    const isMounted = useRef(true);
 
   
     const handleResize = () => {
@@ -15,6 +16,10 @@ const Canvas = ({ canvasRef,screenHeight,screenWidth,setScreenHeight,setScreenWi
 
     useEffect(() => {
         handleResize();
+        if (isMounted.current) {
+            isMounted.current = false;
+            addLayer();
+        }
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);

@@ -664,7 +664,9 @@ export default function Home() {
       <div className='flex justify-between w-[calc(100%-250px)] xl:w-[calc(100%-350px)]  items-center'>
         <div className='w-full '>
 
-          <Canvas canvasRef={canvasRef} screenHeight={screenHeight} screenWidth={screenWidth} setScreenHeight={setScreenHeight} setScreenWidth={setScreenWidth} />
+          <Canvas canvasRef={canvasRef}
+            addLayer={addLayer}
+            screenHeight={screenHeight} screenWidth={screenWidth} setScreenHeight={setScreenHeight} setScreenWidth={setScreenWidth} />
         </div>
 
         <div className='border flex flex-col justify border-black w-[12em] h-full mr-1'>
