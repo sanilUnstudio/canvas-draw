@@ -19,7 +19,7 @@ const Draw = ({
     uploadProduct
 }) => {
     return (
-        <div className='w-full h-full'>
+        <div className='w-full h-screen overflow-auto'>
             <p className='text-center font-bold text-xl mt-8'>Add Image</p>
             <div className='w-full  px-2 pb-5 flex flex-wrap justify-center  content-start gap-3 pt-8  overflow-y-auto'>
                 {assets && assets.length > 0 && assets.map((asset, index) => {

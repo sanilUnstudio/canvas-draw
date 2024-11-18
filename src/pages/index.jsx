@@ -371,7 +371,7 @@ export default function Home() {
           left: objClone.left * scaleX,
           top: objClone.top * scaleY
         })
-        // dummyCanvas.add(objClone);
+        dummyCanvas.add(objClone);
       } else if ('mask' in obj && obj.mask) {
         const objClone = fabric.util.object.clone(obj);
         const width = objClone.getScaledWidth() * scaleX;
@@ -382,7 +382,7 @@ export default function Home() {
           left: objClone.left * scaleX,
           top: objClone.top * scaleY
         })
-        // dummyCanvas.add(objClone);
+        dummyCanvas.add(objClone);
       } else {
         const objClone = await cloneObject(obj, scaleX, scaleY);
         objClone.stroke = '#fff'
@@ -454,7 +454,7 @@ export default function Home() {
           left: objClone.left * scaleX,
           top: objClone.top * scaleY
         })
-        dummyCanvas.add(objClone);
+        // dummyCanvas.add(objClone);
       } else if ('mask' in obj && obj.mask) {
         const objClone = fabric.util.object.clone(obj);
         const width = objClone.getScaledWidth() * scaleX;
@@ -465,9 +465,10 @@ export default function Home() {
           left: objClone.left * scaleX,
           top: objClone.top * scaleY
         })
-        dummyCanvas.add(objClone);
+        // dummyCanvas.add(objClone);
       } else {
         const objClone = await cloneObject(obj, scaleX, scaleY);
+        objClone.stroke = '#fff'
         dummyCanvas.add(objClone);
       }
 
