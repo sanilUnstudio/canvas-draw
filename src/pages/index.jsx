@@ -480,7 +480,27 @@ export default function Home() {
 
   const base = async () => {
     const base1 = await inverse();
-    const base2 = await withoutBase64();
+    let base2 = await withoutBase64();
+    // const link = document.createElement("a");
+    // link.target = "_blank"; // Open the link in a new tab
+    // link.href = base2;
+    // link.click();
+
+    // Ensure base1 is a valid Base64 string and prepend the data URL prefix
+    if (!base2.startsWith("data:image")) {
+      // Add the proper data URL prefix if not already present
+      base2 = `data:image/png;base64,${base2}`;
+    }
+
+    // Create a new window with the Base64 image
+    const newTab = window.open();
+    if (newTab) {
+      newTab.document.write(`<img src="${base2}" alt="Generated Image" style="width: 100%; height: 100%;object-fit:contain">`);
+      newTab.document.close();
+    } else {
+      console.error("Failed to open a new tab. Please check browser settings.");
+    }
+
    console.log({withoutBase64:base1,inverse:base2})
   }
 
