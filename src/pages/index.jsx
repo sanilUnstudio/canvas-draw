@@ -5,10 +5,11 @@ import Card from '../components/card';
 const Canvas = dynamic(() => import('../components/canvas'), { ssr: false });
 import { fabric } from 'fabric';
 import Control from '@/components/Controls';
-
+import { useOutsideClick } from '@/utils';
 
 export default function Home() {
   const canvasRef = useRef([]);
+  const canvasDivRef = useRef(null);
   const [data, setData] = useState([]);
   const [currentCanvas, setCurrentCanvas] = useState();
   const [eraserStatus, setEraserStatus] = useState(false);
@@ -654,7 +655,12 @@ export default function Home() {
       }
     }
   }
+  const handleDeselectPropsClickOutside = () => {
+    currentCanvas.discardActiveObject()
+    currentCanvas.renderAll();
+  }
 
+  useOutsideClick(canvasDivRef,handleDeselectPropsClickOutside)
 
   return (
     <div className='h-screen w-screen flex'>
@@ -685,7 +691,9 @@ export default function Home() {
       <div className='flex justify-between w-[calc(100%-250px)] xl:w-[calc(100%-350px)]  items-center'>
         <div className='w-full '>
 
-          <Canvas canvasRef={canvasRef}
+          <Canvas
+            canvasDivRef={canvasDivRef}
+            canvasRef={canvasRef}
             addLayer={addLayer}
             screenHeight={screenHeight} screenWidth={screenWidth} setScreenHeight={setScreenHeight} setScreenWidth={setScreenWidth} />
         </div>

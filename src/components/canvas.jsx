@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useRef } from 'react';
-const Canvas = ({ canvasRef,screenHeight,screenWidth,setScreenHeight,setScreenWidth,addLayer }) => {
+const Canvas = ({ canvasRef, screenHeight, screenWidth, setScreenHeight, setScreenWidth, addLayer, canvasDivRef }) => {
     const isMounted = useRef(true);
 
   
@@ -42,7 +42,7 @@ const Canvas = ({ canvasRef,screenHeight,screenWidth,setScreenHeight,setScreenWi
 
 
     return (
-        <div id='parent-container' style={{ height:screenWidth? screenWidth: '80vh',width:"55%" }} className='border mx-auto border-black relative'>
+        <div ref={canvasDivRef} id='parent-container' style={{ height:screenWidth? screenWidth: '80vh',width:"55%" }} className='border mx-auto border-black relative'>
 
         </div>
     )
