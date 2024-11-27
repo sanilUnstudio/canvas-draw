@@ -155,41 +155,7 @@ export default function Home() {
     });
   }
 
-  const inverse = async (width, height) => {
-    const id = document.getElementById("base64");
-    const canvasAll = new fabric.Canvas(id, {
-      stopContextMenu: false,
-      fireRightClick: true,
-      isDrawingMode: false,
-      preserveObjectStacking: true,
-      width: screenWidth,
-      height: screenWidth,
-    });
-    canvasAll.renderAll();
-    fabric.Object.prototype.transparentCorners = false;
-    fabric.Object.prototype.cornerStyle = 'rect';
-    fabric.Object.prototype.cornerSize = 6;
-
-    const canvasObjects = [];
-
-    // Sorting the allCanvas according to the dnd
-    data.map((db) => {
-      canvasRef.current.map((dt) => {
-        if (db.id.charAt(9) == dt?.id) {
-          canvasObjects.push(dt.canvas);
-        }
-      })
-    })
-
-    // Adding the object in canvas
-    for (let i = canvasObjects.length - 1; i >= 0; i--) {
-      canvasObjects[i]._objects.forEach((singleObject) => {
-        canvasAll.add(singleObject);
-        canvasAll.renderAll();
-      })
-    }
-
-
+  const withoutBase64 = async (width, height) => {
     const dummyCanvas = new fabric.Canvas(
       'offscreen-fabric-without-background-canvas',
       {
@@ -200,9 +166,9 @@ export default function Home() {
 
     dummyCanvas.backgroundColor = '#fff'
 
-    let scaleX = dummyCanvas.getWidth() / canvasAll.getWidth();
-    let scaleY = dummyCanvas.getHeight() / canvasAll.getHeight();
-    let allObjects = canvasAll.getObjects();
+    let scaleX = 1;
+    let scaleY = 1;
+    let allObjects = currentCanvas.getObjects();
     for (let obj of allObjects) {
       if ('mask' in obj && !obj.mask) {
         const objClone = fabric.util.object.clone(obj);
@@ -229,7 +195,7 @@ export default function Home() {
       } else {
         const objClone = await cloneObject(obj, scaleX, scaleY);
         objClone.stroke = '#fff'
-        dummyCanvas.add(objClone);
+        // dummyCanvas.add(objClone);
       }
 
     };
@@ -238,40 +204,7 @@ export default function Home() {
     return dataURL;
   }
 
-  const withoutBase64 = async (width, height) => {
-    const id = document.getElementById("base64");
-    const canvasAll = new fabric.Canvas(id, {
-      stopContextMenu: false,
-      fireRightClick: true,
-      isDrawingMode: false,
-      preserveObjectStacking: true,
-      width: screenWidth,
-      height: screenWidth,
-    });
-    canvasAll.renderAll();
-    fabric.Object.prototype.transparentCorners = false;
-    fabric.Object.prototype.cornerStyle = 'rect';
-    fabric.Object.prototype.cornerSize = 6;
-
-    const canvasObjects = [];
-
-    // Sorting the allCanvas according to the dnd
-    data.map((db) => {
-      canvasRef.current.map((dt) => {
-        if (db.id.charAt(9) == dt?.id) {
-          canvasObjects.push(dt.canvas);
-        }
-      })
-    })
-
-    // Adding the object in canvas
-    for (let i = canvasObjects.length - 1; i >= 0; i--) {
-      canvasObjects[i]._objects.forEach((singleObject) => {
-        canvasAll.add(singleObject);
-        canvasAll.renderAll();
-      })
-    }
-
+  const inverse = async (width, height) => {
 
     const dummyCanvas = new fabric.Canvas(
       'offscreen-fabric-without-background-canvas',
@@ -283,9 +216,9 @@ export default function Home() {
 
     dummyCanvas.backgroundColor = '#000'
 
-    let scaleX = dummyCanvas.getWidth() / canvasAll.getWidth();
-    let scaleY = dummyCanvas.getHeight() / canvasAll.getHeight();
-    let allObjects = canvasAll.getObjects();
+    let scaleX = 1;
+    let scaleY = 1;
+    let allObjects = currentCanvas.getObjects();
     for (let obj of allObjects) {
       if ('mask' in obj && !obj.mask) {
         const objClone = fabric.util.object.clone(obj);
@@ -338,13 +271,13 @@ export default function Home() {
     // Create a new window with the Base64 image
     const newTab = window.open();
     if (newTab) {
-      newTab.document.write(`<img src="${base2}" alt="Generated Image" style="width: 100%; height: 100%;object-fit:contain">`);
+      newTab.document.write(`<img src="${base1}" alt="Generated Image" style="width: 100%; height: 100%;object-fit:contain">`);
       newTab.document.close();
     } else {
       console.error("Failed to open a new tab. Please check browser settings.");
     }
 
-    console.log({ withoutBase64: base1, inverse: base2 })
+    console.log({ withoutBase64: base2, inverse: base1})
   }
 
   const handleDeselectPropsClickOutside = () => {
