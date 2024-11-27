@@ -1,7 +1,5 @@
 import dynamic from 'next/dynamic';
 import { useState, useRef, useCallback, useEffect } from 'react';
-import update from "immutability-helper";
-import Card from '../components/card';
 const Canvas = dynamic(() => import('../components/canvas'), { ssr: false });
 import { fabric } from 'fabric';
 import Control from '@/components/Controls';
@@ -25,164 +23,84 @@ export default function Home() {
 
     'https://ik.imagekit.io/ei5bqbiry/assets/tanviagrawal99jln_gmail.com_1698300965_5560483227_SBA-WB8w6.png',
 
-    'https://ik.imagekit.io/ei5bqbiry/assets/aseemkhanduja_gmail.com_487.5038167631852_jwLQ2zKg_.png',
+    'https://ik.imagekit.io/ei5bqbiry/assets/aseemkhanduja_gmail.com_487.5038167631852_jwLQ2zKg_.png'
   ];
 
-  const renderCard = useCallback((db, idx) => {
-    return (
-      <Card key={db.id} id={db.id} index={idx} image={db.img} moveCard={moveCard} layerVisiblity={layerVisiblity} />
-    )
-  })
+
 
   function addProduct(canvas, product) {
     if (canvas) {
       fabric.Image.fromURL(product, function (img) {
-        img.scaleToWidth(150);
-        img.scaleToHeight(150);
-        let tempWidth = canvas.width - img.getScaledWidth();
-        let tempHeight = canvas?.height - img.getScaledHeight();
+
+        // Calculate canvas dimensions based on the product image size and padding
+        const newWidth = img.width;
+        const newHeight = img.height;
+        console.log("product:", { width: newWidth, height: newHeight })
+        // Update canvas dimensions
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
+        canvasDivRef.current.width = img.width;
+        canvasDivRef.current.height = img.height;
+        canvas.renderAll();
+        // Center the image within the canvas
         img.set({
-          left: tempWidth / 2,
-          top: tempHeight / 2,
+          left: 0,
+          top: 0,
           transparentCorners: false,
           cornerStyle: 'circle',
           cornerSize: 12,
           erasable: false,
           crossOrigin: "anonymous",
-          mask: false
+          mask: false,
         });
+
+        // Add the image to the canvas
         canvas.add(img);
         canvas.renderAll();
-        let dat = { canvas: canvasRef.current, dnd: data }
-        saveState({ data: dat })
       }, { crossOrigin: 'anonymous' });
     }
   }
 
-
-  const uploadProduct = async (e) => {
-    let file = e?.target.files[0];
-    if (!file) return;
-    const url = await convertToBase64(file)
-    addProduct(currentCanvas,url);
-    e.target.value = '';
-  }
-
-  function init(id, parent, parentId) {
-    const can = new fabric.Canvas(id, {
+  function init(id) {
+    const can = new fabric.Canvas('canvas', {
       stopContextMenu: false,
       fireRightClick: true,
       isDrawingMode: false,
       preserveObjectStacking: true,
-      width: parent.clientWidth,
-      height: parent.clientHeight,
-      id: id
+      width: 500, // Temporary width
+      height: 500, // Temporary height
+      id: id,
+
     });
     can.renderAll();
+
+    // Default settings for fabric.js objects
     fabric.Object.prototype.transparentCorners = false;
     fabric.Object.prototype.cornerStyle = 'rect';
     fabric.Object.prototype.cornerSize = 6;
-
-    let allCanvas = [...canvasRef.current];
-    let key = allCanvas.length + 1;
-    let obj = { id: key, canvas: can };
-    allCanvas = [...allCanvas, obj];
-    canvasRef.current = allCanvas;
-    let url = can.toDataURL();
-
-
-    setData((prev) => [{ id: parentId, img: url }, ...prev])
-    let dat = { canvas: canvasRef.current, dnd: [{ id: parentId, img: url }, ...data] }
-    saveState({ data: dat })
-    return can
-  }
-
-  function addLayer() {
-    const parentElement = document.getElementById('parent-container');
-
-    let div = document.createElement("div");
-    div.id = `${'container' + (parentElement.children.length + 1)}`;
-    div.style.width = parentElement.clientWidth;
-    div.style.height = parentElement.clientHeight;
-
-
-    let element = document.createElement("canvas");
-    element.id = `${'canvas' + (parentElement.children.length + 1)}`;
-    div.appendChild(element)
-
-    div.style.position = 'absolute';
-    div.style.zIndex = parentElement.children.length + 1;
-
-    parentElement.appendChild(div);
-    // console.log(div.id, element.id)
-    let canvas = init(element.id, parentElement, div.id);
-
-
-    currentCanvas?.discardActiveObject().renderAll();
-    setCurrentCanvas(canvas);
-    setDrawing(false);
-    setEraserStatus(false);
+    setCurrentCanvas(can);
+    return can;
   }
 
 
-  function print() {
-    console.log({ allCanvas: canvasRef.current });
-    console.log({ dnd: data });
-    console.log({ currentCanvas: currentCanvas })
-  }
-
-
-  const moveCard = useCallback((dragIndex, hoverIndex) => {
-    let dt = [];
-    setData((prevCards) => {
-      dt = update(prevCards, {
-        $splice: [
-          [dragIndex, 1],
-          [hoverIndex, 0, prevCards[dragIndex]]
-        ]
-      })
-      currentCanvas?.discardActiveObject().renderAll();
-
-      // Updating the z-index after drag or drop
-      document.querySelectorAll('#parent-container >  div').forEach(child => {
-        dt.map((db, idx) => {
-          let no = dt.length - idx
-          if (db.id == child.id) {
-            child.style.zIndex = no
-          }
-        })
-      });
-
-      let id;
-      for (let i = 0; i < dt.length; i++) {
-        let canvasElement = document.getElementById(dt[i].id);
-        if (canvasElement.style.display != 'none') {
-          id = canvasElement.id;
-          break;
-        }
-      }
-
-      let obj = canvasRef.current[id?.charAt(9)]?.canvas;
-
-      currentCanvas?.discardActiveObject().renderAll();
-      setCurrentCanvas(obj);
-
-      let dat = { canvas: canvasRef.current, dnd: dt }
-      saveState({ data: dat })
-      setDrawing(false);
-      setEraserStatus(false);
-      return dt
-    }
-    );
-
+  useEffect(() => {
+    const canvas = init('container1');
+    return () => {
+      canvas.dispose();
+    };
   }, []);
-
-
 
   const addImage = (image) => {
     addProduct(currentCanvas, image)
   }
 
+  const uploadProduct = async (e) => {
+    let file = e?.target.files[0];
+    if (!file) return;
+    const url = await convertToBase64(file)
+    addProduct(currentCanvas, url);
+    e.target.value = '';
+  }
 
   useEffect(() => {
     if (currentCanvas) {
@@ -194,82 +112,6 @@ export default function Home() {
       currentCanvas.freeDrawingBrush.width = strokeWidth;
     }
   }, [currentCanvas, drawing, eraserStatus, brush, strokeWidth]);
-
-
-  // To update the preview
-  function updatePreview(canvas) {
-    const updatedData = data.map(db => {
-      if (db.id?.charAt(9) === canvas?.id.charAt(6)) {
-        let url = canvas.toDataURL()
-        canvas.renderAll()
-        return { ...db, img: url };
-      }
-      return db;
-    });
-    let dat = { canvas: canvasRef.current, dnd: updatedData }
-    saveState({ data: dat })
-  }
-
-  useEffect(() => {
-    if (currentCanvas) {
-
-      currentCanvas.on('object:modified', () => {
-        updatePreview(currentCanvas);
-      })
-
-      currentCanvas.on('path:created', () => {
-        updatePreview(currentCanvas);
-      })
-      currentCanvas.on('erasing:end', () => {
-        updatePreview(currentCanvas);
-      })
-      return () => {
-        currentCanvas.off("object:modified", () => {
-          updatePreview(currentCanvas);
-        })
-        currentCanvas.off("path:created", () => {
-          updatePreview(currentCanvas);
-        })
-        currentCanvas.off("erasing:end", () => {
-          updatePreview(currentCanvas);
-        })
-      }
-    }
-  }, [currentCanvas, data])
-
-  function updateCanvasAccToDndSerial() {
-    let id;
-    for (let i = 0; i < data.length; i++) {
-      let canvasElement = document.getElementById(data[i].id);
-      if (canvasElement.style.display != 'none') {
-        id = canvasElement.id;
-        console.log(id);
-        break;
-      }
-    }
-
-    let obj = canvasRef.current[id?.charAt(9) - 1]?.canvas;
-    currentCanvas?.discardActiveObject().renderAll();
-    setCurrentCanvas(obj);
-
-  }
-
-
-  function layerVisiblity(id, visible) {
-    document.querySelectorAll('#parent-container > div').forEach(child => {
-      if (id == child.id) {
-        if (!visible) {
-          child.style.display = 'none'
-          updateCanvasAccToDndSerial();
-        } else {
-          child.style.display = 'block';
-          updateCanvasAccToDndSerial();
-        }
-      }
-    });
-  }
-
-
 
   useEffect(() => {
 
@@ -313,7 +155,7 @@ export default function Home() {
     });
   }
 
-  const inverse = async() => {
+  const inverse = async (width, height) => {
     const id = document.getElementById("base64");
     const canvasAll = new fabric.Canvas(id, {
       stopContextMenu: false,
@@ -351,8 +193,8 @@ export default function Home() {
     const dummyCanvas = new fabric.Canvas(
       'offscreen-fabric-without-background-canvas',
       {
-        height: 1024,
-        width: 1024,
+        height: height,
+        width: width,
       }
     );
 
@@ -396,7 +238,7 @@ export default function Home() {
     return dataURL;
   }
 
-  const withoutBase64 = async() => {
+  const withoutBase64 = async (width, height) => {
     const id = document.getElementById("base64");
     const canvasAll = new fabric.Canvas(id, {
       stopContextMenu: false,
@@ -434,8 +276,8 @@ export default function Home() {
     const dummyCanvas = new fabric.Canvas(
       'offscreen-fabric-without-background-canvas',
       {
-        height: 1024,
-        width: 1024,
+        height: height,
+        width: width,
       }
     );
 
@@ -480,8 +322,8 @@ export default function Home() {
   }
 
   const base = async () => {
-    const base1 = await inverse();
-    let base2 = await withoutBase64();
+    const base1 = await inverse(currentCanvas.width, currentCanvas.height);
+    let base2 = await withoutBase64(currentCanvas.width, currentCanvas.height);
     // const link = document.createElement("a");
     // link.target = "_blank"; // Open the link in a new tab
     // link.href = base2;
@@ -502,206 +344,48 @@ export default function Home() {
       console.error("Failed to open a new tab. Please check browser settings.");
     }
 
-   console.log({withoutBase64:base1,inverse:base2})
+    console.log({ withoutBase64: base1, inverse: base2 })
   }
 
-  const historyRef = useRef({
-    canvasState: [],
-    currentStateIndex: -1,
-    undoStatus: false,
-    redoStatus: false,
-    undoFinishedStatus: 1,
-    redoFinishedStatus: 1,
-  });
-
-
-  function saveState(param) {
-    if ((historyRef.current.undoStatus == false && historyRef.current.redoStatus == false)) {
-      let canvas = [];
-      param.data.canvas.forEach((db) => {
-
-        let json = JSON.stringify(db.canvas.toJSON());
-        // let obj = db.canvas?._objects[0];
-        // console.log({width:obj?.getScaledHeight(),height:obj?.getScaledWidth()})
-        canvas.push({ id: db.id, json })
-      })
-      let dnd = param.data.dnd;
-      var indexToBeInserted = historyRef.current.currentStateIndex + 1;
-
-      historyRef.current.canvasState[indexToBeInserted] = { canvas, dnd };
-      var numberOfElementsToRetain = indexToBeInserted + 1;
-      historyRef.current.canvasState = historyRef.current.canvasState.splice(0, numberOfElementsToRetain);
-
-      historyRef.current.currentStateIndex = historyRef.current.canvasState.length - 1;
-    }
-
-  }
-
-
-  function undo() {
-    if (historyRef.current.undoFinishedStatus) {
-      if (historyRef.current.currentStateIndex == -1) {
-        historyRef.current.undoStatus = false;
-      }
-
-      else {
-        if (historyRef.current.canvasState.length >= 1) {
-          historyRef.current.undoFinishedStatus = 0;
-          if (historyRef.current.currentStateIndex != 0) {
-            historyRef.current.undoStatus = true;
-
-            historyRef.current.canvasState[historyRef.current.currentStateIndex - 1].canvas.forEach((db) => {
-              canvasRef.current.map((singleCanvas) => {
-                if (singleCanvas.id === db.id) {
-                  singleCanvas.canvas.loadFromJSON(db.json, function () {
-                    singleCanvas.canvas.renderAll();
-                  }, function (o, object) {
-                    if (object.type == 'image') {
-                      object.set({
-                        transparentCorners: false,
-                        cornerStyle: 'circle',
-                        cornerSize: 12,
-                        erasable: false,
-                        mask: false
-                      })
-                    }
-                  })
-                }
-              })
-            })
-
-            setData([...historyRef.current.canvasState[historyRef.current.currentStateIndex - 1].dnd]);
-
-            // Updating the z-index after drag or drop
-            document.querySelectorAll('#parent-container div').forEach(child => {
-              historyRef.current.canvasState[historyRef.current.currentStateIndex - 1].dnd.map((db, idx) => {
-                let no = historyRef.current.canvasState[historyRef.current.currentStateIndex - 1].dnd.length - idx
-                if (db.id == child.id) {
-                  child.style.zIndex = no
-                }
-              })
-            });
-
-            historyRef.current.undoStatus = false;
-            historyRef.current.currentStateIndex -= 1;
-            historyRef.current.undoFinishedStatus = 1;
-          }
-          else if (historyRef.current.currentStateIndex == 0) {
-            // canvasRef.current[0].canvas.clear();
-            historyRef.current.canvasState[0].canvas.forEach((db) => {
-              canvasRef.current.map((singleCanvas) => {
-                if (singleCanvas.id === db.id) {
-                  singleCanvas.canvas.loadFromJSON(db.json, singleCanvas.canvas.renderAll.bind(singleCanvas.canvas))
-                }
-              })
-            })
-
-            setData([...historyRef.current.canvasState[0].dnd]);
-            historyRef.current.undoFinishedStatus = 1;
-            historyRef.current.currentStateIndex -= 1;
-          }
-        }
-      }
-    }
-  }
-
-
-  function redo() {
-    if (historyRef.current.redoFinishedStatus) {
-      if ((historyRef.current.currentStateIndex == (historyRef.current.canvasState.length - 1)) && historyRef.current.currentStateIndex != -1) {
-        return;
-      }
-      else {
-        if (historyRef.current.canvasState.length > historyRef.current.currentStateIndex && historyRef.current.canvasState.length != 0) {
-          historyRef.current.redoFinishedStatus = 0;
-          historyRef.current.redoStatus = true;
-
-          historyRef.current.canvasState[historyRef.current.currentStateIndex + 1].canvas.forEach((db) => {
-            canvasRef.current.map((singleCanvas) => {
-              if (singleCanvas.id === db.id) {
-                singleCanvas.canvas.loadFromJSON(db.json, function () {
-                  singleCanvas.canvas.renderAll();
-                }, function (o, object) {
-                  if (object.type == 'image') {
-                    object.set({
-                      transparentCorners: false,
-                      cornerStyle: 'circle',
-                      cornerSize: 12,
-                      erasable: false,
-                      mask: false
-                    })
-                  }
-                })
-              }
-            })
-          })
-
-          setData([...historyRef.current.canvasState[historyRef.current.currentStateIndex + 1].dnd]);
-
-          // Updating the z-index after drag or drop
-          document.querySelectorAll('#parent-container div').forEach(child => {
-            historyRef.current.canvasState[historyRef.current.currentStateIndex + 1].dnd.map((db, idx) => {
-              let no = historyRef.current.canvasState[historyRef.current.currentStateIndex + 1].dnd.length - idx
-              if (db.id == child.id) {
-                child.style.zIndex = no
-              }
-            })
-          });
-
-          historyRef.current.redoStatus = false;
-          historyRef.current.currentStateIndex += 1;
-          historyRef.current.redoFinishedStatus = 1;
-        }
-      }
-    }
-  }
   const handleDeselectPropsClickOutside = () => {
     currentCanvas.discardActiveObject()
     currentCanvas.renderAll();
   }
 
-  useOutsideClick(canvasDivRef,handleDeselectPropsClickOutside)
+  useOutsideClick(canvasDivRef, handleDeselectPropsClickOutside)
 
   return (
-    <div className='h-screen w-screen flex'>
+    <div className='h-screen w-full flex'>
 
       <div className='w-[250px] xl:w-[350px] flex flex-col gap-12 h-full overflow-hidden bg-black text-white'>
-
-
         <Control
-          addLayer={addLayer}
           strokeWidth={strokeWidth}
           setStrokeWidth={setStrokeWidth}
           drawing={drawing}
           setDrawing={setDrawing}
           setEraserStatus={setEraserStatus}
-          undo={undo}
-          redo={redo}
           base={base}
-          print={print}
           eraserStatus={eraserStatus}
           canvas={currentCanvas}
           assets={assets}
           addImage={addImage}
           uploadProduct={uploadProduct}
+          currentCanvas={currentCanvas}
         />
       </div>
 
 
-      <div className='flex justify-between w-[calc(100%-250px)] xl:w-[calc(100%-350px)]  items-center'>
-        <div className='w-full '>
-
-          <Canvas
-            canvasDivRef={canvasDivRef}
-            canvasRef={canvasRef}
-            addLayer={addLayer}
-            screenHeight={screenHeight} screenWidth={screenWidth} setScreenHeight={setScreenHeight} setScreenWidth={setScreenWidth} />
-        </div>
-
-        <div className='border flex flex-col justify border-black w-[12em] h-full mr-1'>
-          {data.length > 0 && data.map((db, idx) => (
-            renderCard(db, idx)
-          ))}
+      <div className=' w-[calc(100%-250px)] xl:w-[calc(100%-350px)] h-full'>
+        <div className='w-full h-full  p-2 '>
+          <div
+            ref={canvasDivRef} style={{
+              width: currentCanvas?.width ? currentCanvas.width :'500px',
+              height: currentCanvas?.height ? currentCanvas.height :'500px',
+            transform: "scale(0.5)", // Scale down the canvas (adjust as needed)
+            transformOrigin: "top left",
+          }}>
+            <canvas id='canvas' className='border border-black' />
+          </div>
         </div>
       </div>
 

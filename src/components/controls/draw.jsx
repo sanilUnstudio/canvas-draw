@@ -3,20 +3,17 @@ import { FaPencil, FaEraser } from 'react-icons/fa6';
 import * as NextImage from 'next/image';
 
 const Draw = ({
-    addLayer,
     strokeWidth,
     setStrokeWidth,
     drawing,
     setDrawing,
     setEraserStatus,
     eraserStatus,
-    undo,
-    redo,
     base,
-    print,
     assets,
     addImage,
-    uploadProduct
+    uploadProduct,
+    currentCanvas
 }) => {
     return (
         <div className='w-full h-screen overflow-auto'>
@@ -43,11 +40,10 @@ const Draw = ({
                 onChange={uploadProduct}
                 className='hidden' />
             <div className='flex flex-col gap-6 items-center'>
-                <button  onClick={() => document.getElementById('input-product').click()} className={`py-2 px-4 text-sm bg-[#1DB954] text-black  rounded-lg hover:border-black border-[#1DB954] hover:bg-white border `} > Add Product</button>
+                <button onClick={() => document.getElementById('input-product').click()} className={`py-2 px-4 text-sm bg-[#1DB954] text-black  rounded-lg hover:border-black border-[#1DB954] hover:bg-white border `} > Add Product</button>
+                <button onClick={() => currentCanvas.clear()} className={`py-2 px-4 text-sm bg-[#1DB954] text-black  rounded-lg hover:border-black border-[#1DB954] hover:bg-white border `} > Clear Canvas</button>
 
                 <div className='flex xl:flex-row flex-col items-center gap-6 w-[80%] justify-between'>
-                    <button onClick={() => addLayer()} className=' py-2 px-4 bg-[#fae27a] text-black  rounded-lg hover:border-black border-[#fae27a] hover:bg-white border'>Add Layer</button>
-                    {/* <button onClick={print} className='py-2 px-4 bg-[#fae27a] text-black  rounded-lg hover:border-black border-[#fae27a] hover:bg-white border'>Print</button> */}
                     <button onClick={base} className=' py-2 px-4 bg-[#fae27a] text-black  rounded-lg hover:border-black border-[#fae27a] hover:bg-white border'>base64</button>
                 </div>
                 <div className='w-1/2 flex flex-col gap-4'>
@@ -89,9 +85,7 @@ const Draw = ({
                         <FaEraser className='text-xl' />
                     </button>
                 </div>
-                <div className='w-1/2 flex justify-between items-center gap-2'>
-                    <button className='py-2 px-4 bg-[#fae27a] text-black  rounded-lg hover:border-black border-[#fae27a] hover:bg-white border' onClick={undo}>Undo</button>
-                    <button className='py-2 px-4 bg-[#fae27a] text-black  rounded-lg hover:border-black border-[#fae27a] hover:bg-white border' onClick={redo}>Redo</button>
+                <div>
                 </div>
             </div>
         </div>
